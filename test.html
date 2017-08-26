@@ -76,7 +76,7 @@
         // turn on the LED
         sendRGB();
 
-        setState(false);
+        setState(true);
 
         // set up the timer that will query the server
         var myVar = setInterval(function () {
@@ -86,8 +86,8 @@
       };
       connection.onerror = function (error) {
         console.log('WebSocket Error ', error);
-        $("#time").innerHTML = 'WebSocket Error ' + error;
-        setState(true);
+        $("#time").innerHTML = 'WebSocket Error';
+        setState(false);
       };
       connection.onmessage = function (e) {
         console.log('Server: ', e.data);
@@ -117,15 +117,9 @@
     }
 
     function setState(isError) {
-      var elem = $("#time");
-      if (isError) {
-        elem.classList.remove('okstate');
-        elem.classList.add('errorstate');
-      }
-      else {
-        elem.classList.add('okstate');
-        elem.classList.remove('errorstate');
-      }
+      var elem = $('#time'); 
+        elem.classList.toggle('okstate', isError);
+        elem.classList.toggle('errorstate', !isError);
     }
 
     (function () {
@@ -133,12 +127,17 @@
         connectSocket();
       });
     })();
+
+    // ----------------------------------------------------
+    function testFunction() {
+    }
+
   </script>
 </head>
 
 <body>
   ArduTroll
-  <div id="time" class="inline okstate">time</div>
+  <div id="time" class="inline">time</div>
   <br />
   <br /> R:
   <input id="r" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
@@ -151,6 +150,7 @@
   <button type="button" onclick="connectSocket()">Connect</button>
   <button type="button" onclick="connection.send('?T')">Get Time</button>
   <button id="onoff" type="button" onclick="LED_onoff()">Off</button>
+  <button id="onoff" type="button" onclick="testFunction()">Test</button>
   <br />
 </body>
 
