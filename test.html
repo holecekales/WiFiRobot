@@ -60,8 +60,6 @@
       }
     }
 
-
-
     // ----------------------------------------------------
     function connectSocket() {
       connection = new WebSocket('ws://' + arduinoIP + ':81/', ['arduino']);
@@ -104,6 +102,7 @@
       sendRGB();
     }
 
+    // ----------------------------------------------------
     function sendRGB() {
       var r = dd(parseInt($('#r').value));
       var g = dd(parseInt($('#g').value));
@@ -120,6 +119,7 @@
       connection.send(rgb);
     }
 
+    // ----------------------------------------------------
     function setState(isError) {
       var elem = $('#time'); 
         elem.classList.toggle('okstate', isError);
