@@ -1,5 +1,5 @@
 var arduinoIP = '10.0.0.118';
-var connection = null;
+var connection: WebSocket = null;
 
 // ----------------------------------------------------
 function $(name): HTMLElement {
@@ -29,6 +29,19 @@ function LED_onoff() {
   }
 }
 
+var timerHandle;
+
+function closeSocket() {
+  if (connection != null) {
+    clearInterval(timerHandle);
+    console.log("closeSocket() called");
+    connection.close();
+    connection = null;
+    $("#time").innerHTML = 'Disconnected';
+    // setup the reconnect
+    setTimeout(connectSocket, 3000);
+  }
+}
 
 // ----------------------------------------------------
 function connectSocket() {
@@ -47,21 +60,26 @@ function connectSocket() {
 
       // set up the timer that will query the server
       console.log("Registring new timer")
-      var timerHandle = setInterval(function () {
+      timerHandle = setInterval(function () {
         connection.send('?T');
       }, 1000);
     }
   };
+
   connection.onerror = function (error) {
     console.log('WebSocket Error ', error);
-    $("#time").innerHTML = 'WebSocket Error';
     setState(false);
+    closeSocket();
   };
+
   connection.onmessage = function (e) {
     console.log('Server: ', e.data);
-
     handleMessage(e.data);
   };
+
+  connection.onclose = function (e) {
+    console.log('Client: closed connection');
+  }
 }
 
 // ----------------------------------------------------
@@ -105,4 +123,5 @@ function setState(isError) {
 
 // ----------------------------------------------------
 function testFunction() {
+  closeSocket();
 }
