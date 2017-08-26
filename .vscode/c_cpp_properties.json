@@ -48,6 +48,8 @@
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/winrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/winrt",
                 "C:/Users/ales/OneDrive/Documents/Arduino/libraries/*",
+                "C:/Program Files (x86)/Arduino/*",
+                "C:/Users/ales/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.3.0/*",
                 "${workspaceRoot}"
             ],
             "defines": [
@@ -63,6 +65,8 @@
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/winrt",
                     "C:/Users/ales/OneDrive/Documents/Arduino/libraries/*",
+                    "C:/Program Files (x86)/Arduino/*",
+                    "C:/Users/ales/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.3.0/*",
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,

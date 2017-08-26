@@ -1,7 +1,7 @@
 <html>
 
 <head>
-
+  <title>ArduTroll</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif
@@ -17,7 +17,9 @@
     function connectSocket() {
       connection = new WebSocket('ws://' + arduinoIP + ':81/', ['arduino']);
       connection.onopen = function () {
-        connection.send('Connect ' + new Date());
+        var d = new Date();
+        // set time on the arduino
+        connection.send('!T' + d.getHours() + ':'+ d.getMinutes() + ':'+ d.getSeconds()+'@'+(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear());
       };
       connection.onerror = function (error) {
         console.log('WebSocket Error ', error);
@@ -41,10 +43,9 @@
       if (b.length < 2) {
         b = '0' + b;
       }
-      var rgb = '#' + r + g + b;
+      var rgb = '!#' + r + g + b;
       console.log('RGB: ' + rgb);
       connection.send(rgb);
-      connection.send('?T');
     }
 
   </script>
@@ -62,6 +63,8 @@
   <br />
   <br />
   <button type="button" onclick="connectSocket()">Connect</button>
+  <button type="button" onclick="connection.send('?T')">Get Time</button>
+
   <br />
 </body>
 
