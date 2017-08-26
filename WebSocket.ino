@@ -8,9 +8,9 @@
 
 // #include <Hash.h>
 
-#define LED_RED 2 //15
-#define LED_GREEN 12
-#define LED_BLUE 13
+#define LED_RED 14      // D5
+#define LED_GREEN 12    // D6
+#define LED_BLUE 13     // D7
 
 ESP8266WiFiMulti WiFiMulti;
 
@@ -35,7 +35,7 @@ inline boolean isspacechar(char c)
 }
 
 // ----------------------------------------------
-char* skipspace(char *str, int *idx = NULL)
+char *skipspace(char *str, int *idx = NULL)
 {
     int i = 0;
     while (isspacechar(*str) && *str)
@@ -97,37 +97,34 @@ void processCommand(uint8_t *payload, size_t length)
     {
         // decode rgb data
         uint32_t rgb = (uint32_t)strtol((const char *)&payload[1], NULL, 16);
-
-        int r = (rgb >> 16) & 0xFF;
-        digitalWrite(LED_RED, r > 128);
-
-        // analogWrite(LED_RED, ((rgb >> 16) & 0xFF));
+        analogWrite(LED_RED, ((rgb >> 16) & 0xFF));
         analogWrite(LED_GREEN, ((rgb >> 8) & 0xFF));
+        USE_SERIAL.println((rgb >> 8) & 0xFF);
         analogWrite(LED_BLUE, ((rgb >> 0) & 0xFF));
     }
     break;
 
     case 'T': // Set Time
     {
-        // not very defensive
+        // not very defensive - assumes null temination
         // assumes format 00:00:00@mm/dd/yyyy
         int h = 0, m = 0, s = 0, dd = 0, mm = 0, yy = 0;
-        atoi((char*)payload+1, &h, (char**)&payload);
-        atoi((char*)payload+1, &m, (char**)&payload);
-        atoi((char*)payload+1, &s, (char**)&payload);
-        atoi((char*)payload+1, &mm, (char**)&payload);
-        atoi((char*)payload+1, &dd, (char**)&payload);
-        atoi((char*)payload+1, &yy, (char**)&payload);
+        atoi((char *)payload + 1, &h, (char **)&payload);
+        atoi((char *)payload + 1, &m, (char **)&payload);
+        atoi((char *)payload + 1, &s, (char **)&payload);
+        atoi((char *)payload + 1, &mm, (char **)&payload);
+        atoi((char *)payload + 1, &dd, (char **)&payload);
+        atoi((char *)payload + 1, &yy, (char **)&payload);
         USE_SERIAL.printf("%02d:%02d:%02d\n", h, m, s);
         USE_SERIAL.printf("%02d/%02d/%02d\n", mm, dd, yy);
-        setTime(h,m,s,dd, mm, yy);
+        setTime(h, m, s, dd, mm, yy);
     }
     break;
 
     default:
     {
         USE_SERIAL.print("!Error: ");
-        USE_SERIAL.println((char*)payload);
+        USE_SERIAL.println((char *)payload);
     }
     }
     // command to set some color/intensity
