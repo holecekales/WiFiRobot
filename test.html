@@ -104,9 +104,9 @@
 
     // ----------------------------------------------------
     function sendRGB() {
-      var r = dd(parseInt($('#r').value));
-      var g = dd(parseInt($('#g').value));
-      var b = dd(parseInt($('#b').value));
+      var r = parseInt($('#r').value);
+      var g = parseInt($('#g').value);
+      var b = parseInt($('#b').value);
 
       if(r == 0 && g == 0 && b == 0)
         $('#onoff').innerText = "On";
@@ -114,7 +114,7 @@
         $('#onoff').innerText = "Off";
 
       // make it command and hash
-      var rgb = '!#' + r.toString(16) + g.toString(16) + b.toString(16);
+      var rgb = '!#' + dd(r.toString(16)) + dd(g.toString(16)) + dd(b.toString(16));
       console.log('RGB: ' + rgb);
       connection.send(rgb);
     }
@@ -152,7 +152,6 @@
   <br />
   <br />
   <button type="button" onclick="connectSocket()">Connect</button>
-  <button type="button" onclick="connection.send('?T')">Get Time</button>
   <button id="onoff" type="button" onclick="LED_onoff()">Off</button>
   <button id="onoff" type="button" onclick="testFunction()">Test</button>
   <br />
