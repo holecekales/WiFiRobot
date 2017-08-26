@@ -99,7 +99,6 @@ void processCommand(uint8_t *payload, size_t length)
         uint32_t rgb = (uint32_t)strtol((const char *)&payload[1], NULL, 16);
         analogWrite(LED_RED, ((rgb >> 16) & 0xFF));
         analogWrite(LED_GREEN, ((rgb >> 8) & 0xFF));
-        USE_SERIAL.println((rgb >> 8) & 0xFF);
         analogWrite(LED_BLUE, ((rgb >> 0) & 0xFF));
     }
     break;
