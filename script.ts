@@ -1,8 +1,8 @@
 var arduinoIP = '10.0.0.118';
-var connection;
+var connection = null;
 
 // ----------------------------------------------------
-function $(name) : HTMLElement {
+function $(name): HTMLElement {
   // return document.getElementById(id);
   return document.querySelector(name);
 }
@@ -19,38 +19,35 @@ function handleMessage(msg) {
 // ----------------------------------------------------
 function LED_onoff() {
   var state = $("#onoff").innerText;
-  if(state == "On") {
-    setRGB(255,255,255);
+  if (state == "On") {
+    setRGB(255, 255, 255);
     $("#onoff").innerText = "Off"
   }
   else {
-    setRGB(0,0,0); 
-    $("#onoff").innerText = "On" 
+    setRGB(0, 0, 0);
+    $("#onoff").innerText = "On"
   }
 }
 
-var counter = 0;
-var timerHandle = null;
+
 // ----------------------------------------------------
 function connectSocket() {
-  connection = new WebSocket('ws://' + arduinoIP + ':81/', ['arduino']);
-  connection.onopen = function () {
+  if (connection === null) {
+    connection = new WebSocket('ws://' + arduinoIP + ':81/', ['arduino']);
+    connection.onopen = function () {
 
-    // initalize the applications
-    // set time on the arduino
-    var d = new Date();
-    connection.send('!T' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '@' + (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear());
+      // initalize the applications
+      // set time on the arduino
+      var d = new Date();
+      connection.send('!T' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '@' + (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear());
 
-    // turn on the LED
-    sendRGB();
+      // turn on the LED
+      sendRGB();
+      setState(true);
 
-    setState(true);
-
-    // set up the timer that will query the server
-
-    if(timerHandle === null) {
+      // set up the timer that will query the server
       console.log("Registring new timer")
-      timerHandle = setInterval(function () {
+      var timerHandle = setInterval(function () {
         connection.send('?T');
       }, 1000);
     }
@@ -61,7 +58,7 @@ function connectSocket() {
     setState(false);
   };
   connection.onmessage = function (e) {
-    console.log('Server: #' + counter++ , e.data);
+    console.log('Server: ', e.data);
 
     handleMessage(e.data);
   };
@@ -82,7 +79,7 @@ function sendRGB() {
   var g = parseInt((<HTMLInputElement>$('#g')).value);
   var b = parseInt((<HTMLInputElement>$('#b')).value);
 
-  if(r == 0 && g == 0 && b == 0)
+  if (r == 0 && g == 0 && b == 0)
     $('#onoff').innerText = "On";
   else
     $('#onoff').innerText = "Off";
@@ -95,9 +92,9 @@ function sendRGB() {
 
 // ----------------------------------------------------
 function setState(isError) {
-  var elem = $('#time'); 
-    elem.classList.toggle('okstate', isError);
-    elem.classList.toggle('errorstate', !isError);
+  var elem = $('#time');
+  elem.classList.toggle('okstate', isError);
+  elem.classList.toggle('errorstate', !isError);
 }
 
 (function () {
