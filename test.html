@@ -1,60 +1,144 @@
+<!DOCTYPE html>
 <html>
 
 <head>
   <title>ArduTroll</title>
-  <style>
+  <style type="text/css">
     body {
       font-family: Arial, Helvetica, sans-serif
     }
+
+    div.inline {
+      display: inline;
+    }
+
+    div.okstate {
+      border: 1px solid #73AD21;
+      padding: 3px
+    }
+
+    div.errorstate {
+      border: 1px solid #FF0000;
+      padding: 3px
+    }
+
+
+    #time {
+      color: blue;
+    }
   </style>
 
-  <script>
+  <script type="text/javascript">
     var arduinoIP = '10.0.0.118';
     var connection;
+
+    // ----------------------------------------------------
+    function $(name) {
+      // return document.getElementById(id);
+      return document.querySelector(name);
+    }
+
+    function dd(s) { return s.length < 2 ? '0' + s : s; }
+
+    // ----------------------------------------------------
+    // messages from server get handled here
+    // ----------------------------------------------------
+    function handleMessage(msg) {
+      $("#time").innerHTML = msg;
+    }
+
+    // ----------------------------------------------------
+    var LED_OFF = true;
+    function LED_onoff() {
+      if (LED_OFF) {
+        setRGB(0,0,0); 
+        $("#onoff").innerText = "On" 
+      }
+      else {
+        setRGB(255,255,255);
+        $("#onoff").innerText = "Off"
+      }
+      LED_OFF = !LED_OFF;
+    }
+
+
 
     // ----------------------------------------------------
     function connectSocket() {
       connection = new WebSocket('ws://' + arduinoIP + ':81/', ['arduino']);
       connection.onopen = function () {
-        var d = new Date();
+
+        // initalize the applications
         // set time on the arduino
-        connection.send('!T' + d.getHours() + ':'+ d.getMinutes() + ':'+ d.getSeconds()+'@'+(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear());
+        var d = new Date();
+        connection.send('!T' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '@' + (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear());
+
+        // turn on the LED
+        sendRGB();
+
+        setState(false);
+
+        // set up the timer that will query the server
+        var myVar = setInterval(function () {
+          connection.send('?T');
+        }, 1000);
+
       };
       connection.onerror = function (error) {
         console.log('WebSocket Error ', error);
+        $("#time").innerHTML = 'WebSocket Error ' + error;
+        setState(true);
       };
       connection.onmessage = function (e) {
         console.log('Server: ', e.data);
+
+        handleMessage(e.data);
       };
     }
 
     // ----------------------------------------------------
-    function dd() {return }    
-    
-    // ----------------------------------------------------
+
+    function setRGB(r, g, b) {
+      $('#r').value = r;
+      $('#g').value = g;
+      $('#b').value = b;
+      sendRGB();
+    }
+
     function sendRGB() {
-      var r = parseInt(document.getElementById('r').value).toString(16);
-      var g = parseInt(document.getElementById('g').value).toString(16);
-      var b = parseInt(document.getElementById('b').value).toString(16);
-      if (r.length < 2) {
-        r = '0' + r;
-      }
-      if (g.length < 2) {
-        g = '0' + g;
-      }
-      if (b.length < 2) {
-        b = '0' + b;
-      }
+      var r = dd(parseInt($('#r').value).toString(16));
+      var g = dd(parseInt($('#g').value).toString(16));
+      var b = dd(parseInt($('#b').value).toString(16));
+
+      // make it command and hash
       var rgb = '!#' + r + g + b;
       console.log('RGB: ' + rgb);
       connection.send(rgb);
     }
 
+    function setState(isError) {
+      var elem = $("#time");
+      if (isError) {
+        elem.classList.remove('okstate');
+        elem.classList.add('errorstate');
+      }
+      else {
+        elem.classList.add('okstate');
+        elem.classList.remove('errorstate');
+      }
+    }
+
+    (function () {
+      document.addEventListener("DOMContentLoaded", function () {
+        connectSocket();
+      });
+    })();
   </script>
 </head>
 
 <body>
   ArduTroll
+  <div id="time" class="inline okstate">time</div>
   <br />
   <br /> R:
   <input id="r" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
@@ -66,7 +150,7 @@
   <br />
   <button type="button" onclick="connectSocket()">Connect</button>
   <button type="button" onclick="connection.send('?T')">Get Time</button>
-
+  <button id="onoff" type="button" onclick="LED_onoff()">Off</button>
   <br />
 </body>
 
