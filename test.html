@@ -48,17 +48,16 @@
     }
 
     // ----------------------------------------------------
-    var LED_OFF = true;
     function LED_onoff() {
-      if (LED_OFF) {
-        setRGB(0,0,0); 
-        $("#onoff").innerText = "On" 
-      }
-      else {
+      var state = $("#onoff").innerText;
+      if(state == "On") {
         setRGB(255,255,255);
         $("#onoff").innerText = "Off"
       }
-      LED_OFF = !LED_OFF;
+      else {
+        setRGB(0,0,0); 
+        $("#onoff").innerText = "On" 
+      }
     }
 
 
@@ -106,12 +105,17 @@
     }
 
     function sendRGB() {
-      var r = dd(parseInt($('#r').value).toString(16));
-      var g = dd(parseInt($('#g').value).toString(16));
-      var b = dd(parseInt($('#b').value).toString(16));
+      var r = dd(parseInt($('#r').value));
+      var g = dd(parseInt($('#g').value));
+      var b = dd(parseInt($('#b').value));
+
+      if(r == 0 && g == 0 && b == 0)
+        $('#onoff').innerText = "On";
+      else
+        $('#onoff').innerText = "Off";
 
       // make it command and hash
-      var rgb = '!#' + r + g + b;
+      var rgb = '!#' + r.toString(16) + g.toString(16) + b.toString(16);
       console.log('RGB: ' + rgb);
       connection.send(rgb);
     }
