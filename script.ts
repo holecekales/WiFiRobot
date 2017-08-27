@@ -1,20 +1,12 @@
 var arduinoIP = '10.0.0.118';
-var connection: WebSocket = null;
+
 
 // ----------------------------------------------------
 function $(name): HTMLElement {
-  // return document.getElementById(id);
   return document.querySelector(name);
 }
 
 function dd(s) { return s.length < 2 ? '0' + s : s; }
-
-// ----------------------------------------------------
-// messages from server get handled here
-// ----------------------------------------------------
-function handleMessage(msg) {
-  $("#time").innerHTML = msg;
-}
 
 // ----------------------------------------------------
 function LED_onoff() {
@@ -28,66 +20,11 @@ function LED_onoff() {
     $("#onoff").innerText = "On"
   }
 }
-
-var timerHandle;
-
-function closeSocket() {
-  if (connection != null) {
-    clearInterval(timerHandle);
-    console.log("closeSocket() called");
-    connection.close();
-    connection = null;
-    $("#time").innerHTML = 'Disconnected';
-    // setup the reconnect
-    setTimeout(connectSocket, 3000);
-  }
-}
-
 // ----------------------------------------------------
-function connectSocket() {
-  if (connection === null) {
-    connection = new WebSocket('ws://' + arduinoIP + ':81/', ['arduino']);
-    connection.onopen = function () {
-
-      // initalize the applications
-      // set time on the arduino
-      var d = new Date();
-      connection.send('!T' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '@' + (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear());
-
-      // turn on the LED
-      sendRGB();
-      setState(true);
-
-      // set up the timer that will query the server
-      console.log("Registring new timer")
-      timerHandle = setInterval(function () {
-        connection.send('?T');
-      }, 1000);
-    }
-  };
-
-  connection.onerror = function (error) {
-    console.log('WebSocket Error ', error);
-    setState(false);
-    closeSocket();
-  };
-
-  connection.onmessage = function (e) {
-    console.log('Server: ', e.data);
-    handleMessage(e.data);
-  };
-
-  connection.onclose = function (e) {
-    console.log('Client: closed connection');
-  }
-}
-
-// ----------------------------------------------------
-
-function setRGB(r, g, b) {
-  (<HTMLInputElement>$('#r')).value = r;
-  (<HTMLInputElement>$('#g')).value = g;
-  (<HTMLInputElement>$('#b')).value = b;
+function setRGB(r: number, g: number, b: number) {
+  (<HTMLInputElement>$('#r')).value = r.toString();
+  (<HTMLInputElement>$('#g')).value = g.toString();
+  (<HTMLInputElement>$('#b')).value = b.toString();
   sendRGB();
 }
 
@@ -104,8 +41,7 @@ function sendRGB() {
 
   // make it command and hash
   var rgb = '!#' + dd(r.toString(16)) + dd(g.toString(16)) + dd(b.toString(16));
-  console.log('RGB: ' + rgb);
-  connection.send(rgb);
+  socket.send(rgb);
 }
 
 // ----------------------------------------------------
@@ -115,13 +51,124 @@ function setState(isError) {
   elem.classList.toggle('errorstate', !isError);
 }
 
+
+// =====================================================================================
+// Event Handlers
+// =====================================================================================
+
+var queryTimeHandle : number = -1;
+
+function onOpenHandler(s: Socket): void {
+  $("#time").innerHTML = "Connected";
+  let d = new Date();
+  s.send('!T' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '@' + (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear());
+  setState(true);
+  setRGB(128, 128, 128);
+  if (1) {
+    console.log("Registring ?T Timer")
+    queryTimeHandle = setInterval(function () {
+      socket.send('?T');
+    }, 1000);
+  }
+}
+
+function onCloseHandler(): void {
+  $("#time").innerHTML = "Disconnected";
+  // if periodic query has been set - remove it
+  if(queryTimeHandle != -1) {
+    console.log("Clearing ?T Timer")
+    clearInterval(queryTimeHandle);
+    queryTimeHandle = -1;
+  }
+}
+
+function onErrorHandler(error): void {
+  $("#time").innerHTML = "Error";
+  setState(false);
+}
+
+function onEvent(msg: string): void {
+  console.log(msg);
+  $("#time").innerHTML = msg;
+}
+
+// =====================================================================================
+// Socket Class
+// =====================================================================================
+class Socket {
+  private socket: WebSocket = null;
+  private address: string = "";
+
+  // event handler callbacks
+  public onOpen: (s: Socket) => void;
+  public onClose: () => void;
+  public onError: (error) => void;
+  public onMessage: (event) => void;
+
+  // constructor
+  constructor() { console.log("Socket constructed"); }
+
+  open(address: string): void {
+    console.log("open: ", address);
+    if (this.socket === null) {
+      this.address = address;
+      this.socket = new WebSocket('ws://' + address + ':81/', ['arduino']);
+      this.socket.onopen = () => {
+        console.log('connection open');
+        if (this.onOpen) this.onOpen(this);
+      }
+
+      this.socket.onclose = () => {
+        console.log('connection close');
+        if (this.onClose) this.onClose();
+      }
+
+      this.socket.onerror = (error) => {
+        console.log('conection error ', error);
+        if (this.onError) this.onError(error);
+        this.close(true); // are we too aggresive ?
+      }
+
+      this.socket.onmessage = (e) => {
+        console.log('RCV: ', e.data);
+        if (this.onMessage) this.onMessage(e.data);
+      }
+    }
+  }
+
+  close(reconnect: boolean): void {
+    console.log("close: ", this.address);
+    if (this.socket != null) {
+      this.socket.close();
+      this.socket = null;
+      if (reconnect) {
+        // setup the reconnect
+        setTimeout(() => this.open(this.address), 3000);
+      }
+    }
+  }
+
+  send(msg: string): void {
+    console.log('SND: ', msg);
+    if (this.socket)
+      this.socket.send(msg);
+  }
+} // class Socket
+
+
+// =====================================================================================
+// Globals and stuff
+// =====================================================================================
+var socket = new Socket();
+
+socket.onOpen = onOpenHandler;
+socket.onClose = onCloseHandler;
+socket.onError = onErrorHandler;
+socket.onMessage = onEvent;
+
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
-    connectSocket();
+    socket.open(arduinoIP);
   });
 })();
 
-// ----------------------------------------------------
-function testFunction() {
-  closeSocket();
-}

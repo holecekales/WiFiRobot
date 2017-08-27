@@ -36,8 +36,7 @@
 </head>
 
 <body>
-  ArduTroll
-  <div id="time" class="inline">time</div>
+  ArduTroll <div id="time" class="inline">time</div>
   <br />
   <br /> R:
   <input id="r" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
@@ -47,9 +46,11 @@
   <input id="b" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
   <br />
   <br />
-  <button type="button" onclick="connectSocket()">Connect</button>
+  <button type="button" onclick="socket.open(arduinoIP)">Connect</button>
+  <button type="button" onclick="socket.close(true)">Disconnect</button>
   <button id="onoff" type="button" onclick="LED_onoff()">Off</button>
-  <button id="onoff" type="button" onclick="testFunction()">Test</button>
+  <button type="button" onclick="socket.send('?T')">Get Time</button>
+  
   <br />
 </body>
 
