@@ -1,10 +1,11 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "none", // CommonJS
         "target": "es5",
         "noImplicitAny": false,
         "noImplicitThis": true,
         "sourceMap": true,
-        "watch": true 
+        "watch": true,
+        "outFile": "script.js" 
     }
 }
