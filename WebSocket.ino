@@ -13,10 +13,10 @@
 #define LED_BLUE 13  // D7
 
 // motor control PINs
-#define MDB 17 // D4 - Direction of motor B
-#define MDA 18 // D3 - Direction of motor A
-#define MVB 19 // D2 - Direction of motor B
-#define MVA 20 // D1 - Direction of motor A
+#define MDB 02 // D4 - Direction of motor B
+#define MDA 00 // D3 - Direction of motor A
+#define MVB 04 // D2 - Direction of motor B
+#define MVA 05 // D1 - Direction of motor A
 
 ESP8266WiFiMulti WiFiMulti;
 
@@ -96,17 +96,19 @@ boolean atoi(char *str, int *value, char **endstr)
 // ----------------------------------------------
 void SetMotorSpeed(uint8_t motor, int speed)
 {
+    // USE_SERIAL.printf("Motor: %c\n",motor);
+
     int dir = 1, dirPin = 0, velPin = 0;
     if(speed < 0)    { dir = 0; speed = -speed;}  
     if(motor == 'A') { dirPin = MDA; velPin = MVA; }
     else             { dirPin = MDB; velPin = MVB; }
 
-    USE_SERIAL.printf("Motor: %s, Pin[d:%d, v:%d], Dir %d, Vel: %d\n", velPin == 20 ? "A" : "B", dirPin, velPin, dir, speed);
+    USE_SERIAL.printf("Motor: %c, Pin[d:%d, v:%d], Dir %d, Vel: %d\n", motor, dirPin, velPin, dir, speed);
     
     digitalWrite(dirPin, dir);
-    analogWrite(velPin, speed);
+    analogWrite(velPin, 4*speed);
 }
-    
+
 // ----------------------------------------------
 void processCommand(uint8_t *payload, size_t length)
 {
