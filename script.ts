@@ -65,7 +65,7 @@ function onOpenHandler(s: Socket): void {
   s.send('!T' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '@' + (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear());
   setState(true);
   setRGB(128, 128, 128);
-  if (1) {
+  if (0) {
     console.log("Registring ?T Timer")
     queryTimeHandle = setInterval(function () {
       socket.send('?T');
