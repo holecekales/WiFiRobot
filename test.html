@@ -44,11 +44,17 @@
   <input id="g" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
   <br /> B:
   <input id="b" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
+
+  <br/>MotorA:
+  <input id="A" type="range" min="-255" max="255" step="1" oninput="setMotor('A');" />
+  <br/>MotorB:
+  <input id="B" type="range" min="-255" max="255" step="1" oninput="setMotor('B');" />
+
   <br />
   <br />
   <button type="button" onclick="socket.open(arduinoIP)">Connect</button>
   <button type="button" onclick="socket.close(true)">Disconnect</button>
-  <button id="onoff" type="button" onclick="LED_onoff()">Off</button>
+  <button id="onoff" type="button" onclick="Allonoff()">Off</button>
   <button type="button" onclick="socket.send('?T')">Get Time</button>
   
   <br />

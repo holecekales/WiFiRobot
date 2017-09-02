@@ -8,9 +8,15 @@
 
 // #include <Hash.h>
 
-#define LED_RED 14      // D5
-#define LED_GREEN 12    // D6
-#define LED_BLUE 13     // D7
+#define LED_RED 14   // D5
+#define LED_GREEN 12 // D6
+#define LED_BLUE 13  // D7
+
+// motor control PINs
+#define MDB 17 // D4 - Direction of motor B
+#define MDA 18 // D3 - Direction of motor A
+#define MVB 19 // D2 - Direction of motor B
+#define MVA 20 // D1 - Direction of motor A
 
 ESP8266WiFiMulti WiFiMulti;
 
@@ -88,6 +94,20 @@ boolean atoi(char *str, int *value, char **endstr)
 }
 
 // ----------------------------------------------
+void SetMotorSpeed(uint8_t motor, int speed)
+{
+    int dir = 1, dirPin = 0, velPin = 0;
+    if(speed < 0)    { dir = 0; speed = -speed;}  
+    if(motor == 'A') { dirPin = MDA; velPin = MVA; }
+    else             { dirPin = MDB; velPin = MVB; }
+
+    USE_SERIAL.printf("Motor: %s, Pin[d:%d, v:%d], Dir %d, Vel: %d\n", velPin == 20 ? "A" : "B", dirPin, velPin, dir, speed);
+    
+    digitalWrite(dirPin, dir);
+    analogWrite(velPin, speed);
+}
+    
+// ----------------------------------------------
 void processCommand(uint8_t *payload, size_t length)
 {
 
@@ -117,6 +137,21 @@ void processCommand(uint8_t *payload, size_t length)
         USE_SERIAL.printf("%02d:%02d:%02d\n", h, m, s);
         USE_SERIAL.printf("%02d/%02d/%02d\n", mm, dd, yy);
         setTime(h, m, s, dd, mm, yy);
+    }
+    break;
+
+    case 'M':
+    {
+        if(length > 2) {
+            int v; 
+            if(atoi((char *)payload + 2, &v, NULL)) {
+                SetMotorSpeed(payload[1], v);
+            }
+            else {
+                USE_SERIAL.printf("Invalid Motor Command %s\n", (char *)payload + 1);
+            }
+        } 
+        
     }
     break;
 
@@ -209,6 +244,17 @@ void setup()
     digitalWrite(LED_RED, 1);
     digitalWrite(LED_GREEN, 1);
     digitalWrite(LED_BLUE, 1);
+
+    // configure motor pins
+    pinMode(MDA, OUTPUT);
+    pinMode(MVA, OUTPUT);
+    pinMode(MDB, OUTPUT);
+    pinMode(MVB, OUTPUT);
+
+    digitalWrite(MDA, 0);
+    digitalWrite(MVA, 0);
+    digitalWrite(MDB, 0);
+    digitalWrite(MVB, 0);
 
     WiFiMulti.addAP(ssid, password);
 

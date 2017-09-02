@@ -11,15 +11,19 @@ function $(name): HTMLElement {
 function dd(s) { return s.length < 2 ? '0' + s : s; }
 
 // ----------------------------------------------------
-function LED_onoff() {
+function Allonoff() {
   var state = $("#onoff").innerText;
   if (state == "On") {
     setRGB(255, 255, 255);
+    setMotor("A");
+    setMotor("B");
     $("#onoff").innerText = "Off"
   }
   else {
     setRGB(0, 0, 0);
     $("#onoff").innerText = "On"
+    setMotor("A", 0);
+    setMotor("B", 0);
   }
 }
 // ----------------------------------------------------
@@ -51,6 +55,14 @@ function setState(isError) {
   var elem = $('#time');
   elem.classList.toggle('okstate', isError);
   elem.classList.toggle('errorstate', !isError);
+}
+// ----------------------------------------------------
+function setMotor(motor : string, val? : number) {
+
+  if(val === undefined)
+    socket.send("!M"+motor+(<HTMLInputElement>$('#'+motor)).value);
+  else
+    socket.send("!M"+motor + val.toString());
 }
 
 // =====================================================================================
